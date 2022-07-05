@@ -1,0 +1,56 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreatePetInput {
+  exampleField: Int!
+}
+
+type FindAndCountAllPetResponse {
+  count: Int!
+  rows: [Pet!]!
+}
+
+type Mutation {
+  createPet(createPetInput: CreatePetInput!): Pet!
+  removePet(id: Int!): Pet!
+  updatePet(updatePetInput: UpdatePetInput!): Pet!
+}
+
+enum OrderType {
+  ASC
+  DESC
+  asc
+  desc
+}
+
+enum Pagination {
+  no
+  yes
+}
+
+type Pet {
+  created_at: String
+  deleted_at: String
+  id: Int!
+  name: String!
+  updated_at: String
+}
+
+enum PetOrderBy {
+  created_at
+  deleted_at
+  id
+  name
+  updated_at
+}
+
+type Query {
+  pet(id: Int!): Pet!
+  pets(order_by: PetOrderBy, order_type: OrderType, page: Int, pagination: Pagination, row: Int, search: String): FindAndCountAllPetResponse!
+}
+
+input UpdatePetInput {
+  exampleField: Int
+  id: Int!
+}

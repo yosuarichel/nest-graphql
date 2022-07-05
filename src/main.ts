@@ -4,10 +4,11 @@ import * as morgan from 'morgan';
 import * as compression from 'compression';
 import * as cookieParser from 'cookie-parser';
 import { Logger } from 'nestjs-pino';
-import { AppModule } from './app.module';
+import { AppModule } from './main.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { VersioningType } from '@nestjs/common';
+import { HttpExceptionFilter } from './filters/index.filter';
 
 async function bootstrap() {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -31,6 +32,7 @@ async function bootstrap() {
         prefix: commonConfig.api_version_prefix,
     });
     app.setGlobalPrefix(globalPrefixAPI);
+    app.useGlobalFilters(new HttpExceptionFilter());
 
     // Start the http server
     await app.listen(commonConfig.port, () => {
