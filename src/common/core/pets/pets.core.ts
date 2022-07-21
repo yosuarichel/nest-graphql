@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { FindOptions, FindAndCountOptions, Op } from 'sequelize';
+import { FindOptions, FindAndCountOptions, Op, SaveOptions } from 'sequelize';
 import { OrderType, Pagination, PetOrderBy } from '../../../constants/enums';
-import { IFindAndCountAll } from '../../interfaces/index.interface';
+import { IFindAndCountAll, IPet } from '../../interfaces/index.interface';
 import { Pet } from '../../../providers/database/pg/models/index.model';
 import { CreatePagination } from '../../helpers/index.helper';
-import { FilterPet } from '../../dto/index.dto';
+import { FilterPetDto, FindOneFilterPetDto } from '../../dto/index.dto';
 
 @Injectable()
 export class PetsCore {
@@ -14,30 +14,35 @@ export class PetsCore {
         private readonly PetModel: typeof Pet,
     ) {}
 
-    // create(createPetInput: CreatePetInput) {
-    //     return 'This action adds a new pet';
-    // }
+    create(data: IPet, options?: SaveOptions): Promise<Pet> {
+        const pet = new Pet();
+        pet.name = data.name;
+
+        return pet.save(options);
+    }
 
     async findAndCountAll(
-        data: FilterPet,
+        data?: FilterPetDto,
         options?: FindAndCountOptions,
     ): Promise<IFindAndCountAll<Pet[]>> {
-        data.pagination = data.pagination || Pagination.yes;
-        data.page = data.page || 1;
-        data.row = data.row || 10;
-        data.order_by = data.order_by || PetOrderBy.id;
-        data.order_type = data.order_type || OrderType.asc;
+        const filterData: FilterPetDto = {
+            pagination: data?.pagination || Pagination.yes,
+            page: data?.page || 1,
+            row: data?.row || 10,
+            order_by: data?.order_by || PetOrderBy.id,
+            order_type: data?.order_type || OrderType.asc,
+        };
 
         const filter: FindAndCountOptions = {
-            order: [[data.order_by, data.order_type]],
+            order: [[filterData.order_by, filterData.order_type]],
             where: {},
             ...options,
         };
-        if (data.pagination === 'true') {
-            const pager = CreatePagination(data.page, data.row);
+        if (data?.pagination === 'true') {
+            const pager = CreatePagination(filterData.page, filterData.row);
             Object.assign(filter, { limit: pager.row, offset: pager.page });
         }
-        if (data.search) {
+        if (data?.search) {
             Object.assign(filter.where, {
                 name: {
                     [Op.iLike]: `%${data.search}%`,
@@ -47,24 +52,30 @@ export class PetsCore {
         return this.PetModel.findAndCountAll(filter);
     }
 
-    async findOne(id: number, options?: FindOptions): Promise<Pet> {
-        const pet = await this.PetModel.findOne({
-            where: {
-                id,
-            },
+    async findOne(
+        data?: FindOneFilterPetDto,
+        options?: FindOptions,
+    ): Promise<Pet> {
+        const filter: FindOptions = {
+            where: {},
             ...options,
-        });
+        };
+
+        if (data?.id) {
+            Object.assign(filter.where, { id: data.id });
+        }
+        if (data?.name) {
+            Object.assign(filter.where, {
+                name: {
+                    [Op.iLike]: `%${data.name}%`,
+                },
+            });
+        }
+
+        const pet = await this.PetModel.findOne(filter);
         if (!pet) {
             return null;
         }
         return pet;
     }
-
-    // update(id: number, updatePetInput: UpdatePetInput) {
-    //     return `This action updates a #${id} pet`;
-    // }
-
-    // remove(id: number) {
-    //     return `This action removes a #${id} pet`;
-    // }
 }

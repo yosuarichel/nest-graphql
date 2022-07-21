@@ -2,35 +2,38 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { join } from 'path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { PinoLoggerModule } from './providers/index.provider';
+import { PinoLoggerModule, PostgresModule } from './providers/index.provider';
 import { AppConfigModule } from './configs/configuration.module';
-import { PostgresModule } from './providers/database/pg/postgresql.module';
 import { PetsResolverModule } from './common/resolver/pets/pets.resolver.module';
-import { GraphQLError, GraphQLFormattedError } from 'graphql';
+import { ConfigService } from '@nestjs/config';
 
 @Module({
     imports: [
         AppConfigModule,
         PinoLoggerModule,
         PostgresModule,
-        GraphQLModule.forRoot<ApolloDriverConfig>({
+        GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
-            autoSchemaFile: join(process.cwd(), 'src/schemas/schema.gql'),
-            debug: false,
-            playground: true,
-            sortSchema: true,
-            // formatError: (error: GraphQLError) => {
-            //     const graphQLFormattedError: GraphQLFormattedError = {
-            //         message:
-            //             error?.extensions?.exception?.response?.message ||
-            //             error?.message,
-            //     };
-            //     return graphQLFormattedError;
-            // },
+            useFactory: (configService: ConfigService) => {
+                const commonConfig = configService.get('common');
+                return {
+                    autoSchemaFile: join(
+                        process.cwd(),
+                        'src/schemas/schema.gql',
+                    ),
+                    debug: true,
+                    playground: commonConfig.env !== 'production',
+                    sortSchema: true,
+                    cors: true,
+                    csrfPrevention: true,
+                    cache: 'bounded',
+                };
+            },
+            inject: [ConfigService],
         }),
         PetsResolverModule,
     ],
     controllers: [],
     providers: [],
 })
-export class AppModule {}
+export class MainModule {}

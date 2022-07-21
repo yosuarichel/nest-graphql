@@ -2,19 +2,19 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-input CreatePetInput {
-  exampleField: Int!
+input CreatePetInputDto {
+  name: String!
 }
 
-type FindAndCountAllPetResponse {
+type FindAndCountAllPetResponseDto {
   count: Int!
   rows: [Pet!]!
 }
 
 type Mutation {
-  createPet(createPetInput: CreatePetInput!): Pet!
-  removePet(id: Int!): Pet!
-  updatePet(updatePetInput: UpdatePetInput!): Pet!
+  createPet(input: CreatePetInputDto!): Pet!
+  removePet(id: Int!): String!
+  updatePet(id: Int!, input: UpdatePetInputDto!): Pet!
 }
 
 enum OrderType {
@@ -47,10 +47,9 @@ enum PetOrderBy {
 
 type Query {
   pet(id: Int!): Pet!
-  pets(order_by: PetOrderBy, order_type: OrderType, page: Int, pagination: Pagination, row: Int, search: String): FindAndCountAllPetResponse!
+  pets(order_by: PetOrderBy, order_type: OrderType, page: Int, pagination: Pagination, row: Int, search: String): FindAndCountAllPetResponseDto!
 }
 
-input UpdatePetInput {
-  exampleField: Int
-  id: Int!
+input UpdatePetInputDto {
+  name: String
 }

@@ -10,19 +10,19 @@ import { OrderType, Pagination, PetOrderBy } from '../../constants/enums';
 import { Pet } from '../../providers/database/pg/models/pets.model';
 
 @InputType()
-export class CreatePetInput {
-    @Field(() => Int)
-    exampleField: number;
+export class CreatePetInputDto {
+    @Field(() => String)
+    name: string;
 }
 
 @InputType()
-export class UpdatePetInput extends PartialType(CreatePetInput) {
-    @Field(() => Int)
-    id: number;
+export class UpdatePetInputDto extends PartialType(CreatePetInputDto) {
+    @Field(() => String, { nullable: true })
+    name?: string;
 }
 
 @ArgsType()
-export class FilterPet {
+export class FilterPetDto {
     @Field(() => Pagination, { nullable: true })
     pagination?: Pagination;
 
@@ -43,10 +43,19 @@ export class FilterPet {
 }
 
 @ObjectType()
-export class FindAndCountAllPetResponse {
+export class FindAndCountAllPetResponseDto {
     @Field(() => Int, { nullable: false })
     count: number;
 
     @Field(() => [Pet], { nullable: false })
     rows: Pet[];
+}
+
+@ArgsType()
+export class FindOneFilterPetDto {
+    @Field(() => Int, { nullable: true })
+    id?: number;
+
+    @Field(() => String, { nullable: true })
+    name?: string;
 }

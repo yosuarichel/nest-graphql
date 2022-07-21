@@ -2,26 +2,15 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { PetsService } from '../../service/pets/pets.service';
 import { Pet } from '../../../providers/database/pg/models/index.model';
 import {
-    CreatePetInput,
-    UpdatePetInput,
-    FilterPet,
-    FindAndCountAllPetResponse,
+    CreatePetInputDto,
+    UpdatePetInputDto,
+    FilterPetDto,
+    FindAndCountAllPetResponseDto,
 } from '../../dto/index.dto';
 
 @Resolver(() => Pet)
 export class PetsResolver {
     constructor(private readonly petsService: PetsService) {}
-
-    @Mutation(() => Pet)
-    createPet(@Args('createPetInput') createPetInput: CreatePetInput) {
-        return this.petsService.create(createPetInput);
-    }
-
-    @Query(() => FindAndCountAllPetResponse, { name: 'pets' })
-    async findAndCountAll(@Args() query: FilterPet) {
-        const pets = await this.petsService.findAndCountAll(query);
-        return pets;
-    }
 
     @Query(() => Pet, { name: 'pet' })
     async findOne(@Args('id', { type: () => Int }) id: number) {
@@ -29,13 +18,28 @@ export class PetsResolver {
         return pet;
     }
 
-    @Mutation(() => Pet)
-    updatePet(@Args('updatePetInput') updatePetInput: UpdatePetInput) {
-        return this.petsService.update(updatePetInput.id, updatePetInput);
+    @Query(() => FindAndCountAllPetResponseDto, { name: 'pets' })
+    async findAndCountAll(@Args() query: FilterPetDto) {
+        const pets = await this.petsService.findAndCountAll(query);
+        return pets;
     }
 
     @Mutation(() => Pet)
-    removePet(@Args('id', { type: () => Int }) id: number) {
-        return this.petsService.remove(id);
+    createPet(@Args('input') createPetInput: CreatePetInputDto) {
+        return this.petsService.create(createPetInput);
+    }
+
+    @Mutation(() => Pet)
+    updatePet(
+        @Args('id', { type: () => Int }) id: number,
+        @Args('input') updatePetInput: UpdatePetInputDto,
+    ) {
+        return this.petsService.update(id, updatePetInput);
+    }
+
+    @Mutation(() => String)
+    async removePet(@Args('id', { type: () => Int }) id: number) {
+        await this.petsService.remove(id);
+        return 'success delete pet';
     }
 }

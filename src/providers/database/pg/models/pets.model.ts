@@ -27,7 +27,7 @@ export class Pet extends Model<Pet> {
         type: DataType.BIGINT,
         allowNull: false,
     })
-    id?: bigint;
+    id?: number;
 
     @Field(() => String)
     @Column({
